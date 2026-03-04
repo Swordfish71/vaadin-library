@@ -1,9 +1,10 @@
-package com.library.backend;
+package com.library.security;
 
 import com.library.ui.views.Login;
 import com.vaadin.flow.spring.security.VaadinSecurityConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -27,11 +28,11 @@ public class SecurityConfiguration {
     public UserDetailsManager userDetailsService() {
         UserDetails user = User.withUsername("user")
                 .password("{noop}user")
-                .roles("USER")
+                .roles(Roles.USER)
                 .build();
         UserDetails admin = User.withUsername("admin")
                 .password("{noop}admin")
-                .roles("ADMIN")
+                .roles(Roles.ADMIN)
                 .build();
         return new InMemoryUserDetailsManager(user, admin);
     }

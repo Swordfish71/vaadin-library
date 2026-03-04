@@ -2,6 +2,7 @@ package com.library.ui.views;
 
 import com.library.backend.Book;
 import com.library.backend.MockBookRepository;
+import com.library.security.Roles;
 import com.library.ui.components.BookForm;
 import com.library.ui.components.ViewToolbar;
 import com.vaadin.flow.component.button.Button;
@@ -60,15 +61,12 @@ public class BookDetails extends VerticalLayout implements HasUrlParameter<Long>
         setIsEditing(false);
         HorizontalLayout actions = new HorizontalLayout();
 
-        authContext.getAuthenticatedUser(UserDetails.class).ifPresent(user -> {
-            boolean isAdmin = user.getAuthorities().stream().anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
-            if (isAdmin) {
-                actions.add(editBtn, deleteBtn);
-            } else {
-                editBtn.setEnabled(false);
-                deleteBtn.setEnabled(false);
-            }
-        });
+        if(authContext.hasRole(Roles.ADMIN)) {
+            actions.add(editBtn, deleteBtn);
+        } else {
+            editBtn.setEnabled(false);
+            deleteBtn.setEnabled(false);
+        }
 
         add(toolbar, bookForm, actions);
     }
