@@ -12,7 +12,6 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 
 @Route("books/new")
-@RolesAllowed(Roles.ADMIN)
 public class NewBook extends VerticalLayout {
     private final MockBookRepository bookRepo;
     private final Book book = new Book();

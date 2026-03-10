@@ -8,7 +8,6 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 
 @Route("")
 @PageTitle("Home Page")
-@AnonymousAllowed
 public class Home extends VerticalLayout {
     public Home() {
         setAlignItems(Alignment.CENTER);

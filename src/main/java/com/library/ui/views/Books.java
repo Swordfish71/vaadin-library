@@ -17,14 +17,11 @@ import jakarta.annotation.security.PermitAll;
 @Route("books")
 @PageTitle("Catalogue")
 @Menu(order = 1, icon = "vaadin:book", title = "Catalogue")
-@PermitAll
-public class Books extends VerticalLayout implements BeforeEnterObserver {
+public class Books extends VerticalLayout {
     private final MockBookRepository bookRepo;
-    private final AuthenticationContext authContext;
 
-    public Books(MockBookRepository bookRepo, AuthenticationContext authContext) {
+    public Books(MockBookRepository bookRepo) {
         this.bookRepo = bookRepo;
-        this.authContext = authContext;
 
         BookGrid grid = new BookGrid(this.bookRepo.findAll());
 
@@ -38,10 +35,6 @@ public class Books extends VerticalLayout implements BeforeEnterObserver {
             getUI().ifPresent(ui -> ui.navigate("books/new"));
         });
 
-        if(!authContext.hasRole(Roles.ADMIN)) {
-            createBtn.setVisible(false);
-            createBtn.setEnabled(false);
-        };
 
         // Eager search bar (refreshes data on keystroke)
         SearchBar searchBar = new SearchBar(grid::filter, true);
@@ -51,21 +44,4 @@ public class Books extends VerticalLayout implements BeforeEnterObserver {
         add(toolbar, grid);
     }
 
-    @Override
-    public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
-        var queryParams = beforeEnterEvent.getLocation().getQueryParameters().getParameters();
-        if(queryParams.containsKey("message")) {
-            String message = queryParams.get("message").getFirst();
-            switch (message) {
-                case "created":
-                    Notification.show("Book created!").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                    break;
-                case "deleted":
-                    Notification.show("Book deleted!").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
 }

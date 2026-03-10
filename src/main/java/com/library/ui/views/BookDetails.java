@@ -22,10 +22,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 
 @Route("books")
-@PermitAll
 public class BookDetails extends VerticalLayout implements HasUrlParameter<Long> {
     private final MockBookRepository bookRepo;
-    private final AuthenticationContext authContext;
 
     private Book book;
     private final BookForm bookForm = new BookForm();
@@ -36,9 +34,8 @@ public class BookDetails extends VerticalLayout implements HasUrlParameter<Long>
 
     private final ViewToolbar toolbar = new ViewToolbar("Book Details", backBtn);
 
-    public BookDetails(MockBookRepository bookRepo, AuthenticationContext authContext) {
+    public BookDetails(MockBookRepository bookRepo) {
         this.bookRepo = bookRepo;
-        this.authContext = authContext;
 
         configureLayout();
         configureButtons();
@@ -61,12 +58,7 @@ public class BookDetails extends VerticalLayout implements HasUrlParameter<Long>
         setIsEditing(false);
         HorizontalLayout actions = new HorizontalLayout();
 
-        if(authContext.hasRole(Roles.ADMIN)) {
-            actions.add(editBtn, deleteBtn);
-        } else {
-            editBtn.setEnabled(false);
-            deleteBtn.setEnabled(false);
-        }
+        actions.add(editBtn, deleteBtn);
 
         add(toolbar, bookForm, actions);
     }
