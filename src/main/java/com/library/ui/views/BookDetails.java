@@ -1,7 +1,7 @@
 package com.library.ui.views;
 
 import com.library.backend.Book;
-import com.library.backend.BookService;
+import com.library.backend.BookRepository;
 import com.library.security.Roles;
 import com.library.ui.components.BookForm;
 import com.library.ui.components.ViewToolbar;
@@ -23,7 +23,7 @@ import jakarta.annotation.security.PermitAll;
 @Route("books")
 @PermitAll
 public class BookDetails extends VerticalLayout implements HasUrlParameter<Long> {
-    private final BookService bookService;
+    private final BookRepository bookRepo;
     private final AuthenticationContext authContext;
 
     private Book book;
@@ -35,8 +35,8 @@ public class BookDetails extends VerticalLayout implements HasUrlParameter<Long>
 
     private final ViewToolbar toolbar = new ViewToolbar("Book Details", backBtn);
 
-    public BookDetails(BookService bookService, AuthenticationContext authContext) {
-        this.bookService = bookService;
+    public BookDetails(BookRepository bookRepo, AuthenticationContext authContext) {
+        this.bookRepo = bookRepo;
         this.authContext = authContext;
 
         configureLayout();
@@ -45,7 +45,7 @@ public class BookDetails extends VerticalLayout implements HasUrlParameter<Long>
 
     @Override
     public void setParameter(BeforeEvent beforeEvent, Long bookId) {
-        bookService.findBookById(bookId).ifPresentOrElse(
+        bookRepo.findById(bookId).ifPresentOrElse(
             (b) -> {
                 this.book = b;
                 toolbar.setTitle(b.getTitle());
@@ -71,7 +71,7 @@ public class BookDetails extends VerticalLayout implements HasUrlParameter<Long>
     }
 
     private void saveBook(Book book) {
-        bookService.saveBook(book);
+        bookRepo.save(book);
         Notification.show("Book saved").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         setIsEditing(false);
     }
@@ -81,7 +81,7 @@ public class BookDetails extends VerticalLayout implements HasUrlParameter<Long>
     }
 
     private void deleteBook(Book book) {
-        bookService.deleteBook(book);
+        bookRepo.delete(book);
         getUI().ifPresent(ui -> ui.navigate("books?message=deleted"));
     }
 

@@ -1,7 +1,6 @@
 package com.library.ui.views;
 
 import com.library.backend.BookRepository;
-import com.library.backend.BookService;
 import com.library.security.Roles;
 import com.library.ui.components.BookGrid;
 import com.library.ui.components.SearchBar;
@@ -20,14 +19,14 @@ import jakarta.annotation.security.PermitAll;
 @Menu(order = 1, icon = "vaadin:book", title = "Catalogue")
 @PermitAll
 public class Books extends VerticalLayout implements BeforeEnterObserver {
-    private final BookService bookService;
+    private final BookRepository bookRepo;
     private final AuthenticationContext authContext;
 
-    public Books(BookService bookService, AuthenticationContext authContext) {
-        this.bookService = bookService;
+    public Books(BookRepository bookRepo, AuthenticationContext authContext) {
+        this.bookRepo = bookRepo;
         this.authContext = authContext;
 
-        BookGrid grid = new BookGrid(this.bookService.findAllBooks());
+        BookGrid grid = new BookGrid(this.bookRepo.findAll());
 
         // navigate to book details view when clicking a row in the grid
         grid.addItemClickListener(event -> {
@@ -62,7 +61,7 @@ public class Books extends VerticalLayout implements BeforeEnterObserver {
                     Notification.show("Book created!").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     break;
                 case "deleted":
-                    Notification.show("Book deleted!").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    Notification.show("Book deleted!").addThemeVariants(NotificationVariant.LUMO_ERROR);
                     break;
                 default:
                     break;
