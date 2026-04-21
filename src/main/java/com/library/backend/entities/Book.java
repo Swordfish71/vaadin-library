@@ -1,9 +1,8 @@
-package com.library.backend;
+package com.library.backend.entities;
 
 import jakarta.persistence.*;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -12,27 +11,49 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(unique = true)
+    private String openLibraryKey;
+
     private String title;
     private String author;
     private String isbn;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "branch_id") // foreign key referencing the branch id
-    private Branch branch;
-
-    // books have many to many relationship with genre
-    @ManyToMany( fetch =  FetchType.EAGER )
-    @JoinTable
+    // Book owns the bridge table, meaning saving a book with a change in its genres will update the bridge table
+    // Referencing the set of books for a given genre is like a readonly action -
+    // if you update that set and save the genre, nothing happens in the bridge table
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "book_genre", // name of bridge table
+        joinColumns = @JoinColumn(name = "book_id"), // column pointing to THIS entity
+        inverseJoinColumns = @JoinColumn(name = "genre_id") // column poiting to OTHER entity in the relationship
+    )
     private Set<Genre> genres = new HashSet<>();
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "branch_id")
+    private Branch branch;
 
     public Book() {}
 
     public Book(String title, String author, String isbn) {
-        this();
         this.title = title;
         this.author = author;
         this.isbn = isbn;
+    }
+
+    public Book(String key, String title, String author, String isbn) {
+        this.openLibraryKey = key;
+        this.title = title;
+        this.author = author;
+        this.isbn = isbn;
+    }
+
+    public Set<Genre> getGenres() {
+        return genres;
+    }
+
+    public void setGenres(Set<Genre> genres) {
+        this.genres = genres;
     }
 
     public Long getId() {
@@ -69,14 +90,6 @@ public class Book {
 
     public void setBranch(Branch branch) {
         this.branch = branch;
-    }
-
-    public Set<Genre> getGenres() {
-        return genres;
-    }
-
-    public void setGenres(Set<Genre> genres) {
-        this.genres = genres;
     }
 
     @Override

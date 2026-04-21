@@ -1,5 +1,6 @@
-package com.library.backend;
+package com.library.backend.entities;
 
+import com.vaadin.copilot.shaded.checkerframework.common.aliasing.qual.Unique;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -14,12 +15,11 @@ public class Branch {
     @Column(unique = true, nullable = false)
     private String name;
 
-    // one branch has many books
     @OneToMany( mappedBy = "branch", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Book> books = new HashSet<>(); // this is a virtual field (does not exist in the branch db table)
-    // this field is used for convenience so that we can find the books within a particular branch in our code
+    private Set<Book> books = new HashSet<>();
 
-    public Branch() {}
+
+    public Branch() {};
 
     public Branch(String name) {
         this.name = name;
@@ -33,8 +33,22 @@ public class Branch {
         return name;
     }
 
-    public void setName(String newName) {
-        this.name = newName;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Set<Book> getBooks() {
+        return books;
+    }
+
+    public void addBook(Book book) {
+        this.books.add(book);
+        book.setBranch(this);
+    }
+
+    public void removeBook(Book book) {
+        this.books.remove(book);
+        book.setBranch(null);
     }
 
     @Override
@@ -49,5 +63,4 @@ public class Branch {
     public int hashCode() {
         return getClass().hashCode();
     }
-
 }

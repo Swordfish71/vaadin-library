@@ -1,10 +1,10 @@
 package com.library.ui.views;
 
-import com.library.backend.Book;
-import com.library.backend.BookRepository;
-import com.library.backend.BranchRepository;
-import com.library.backend.GenreRepository;
-import com.library.security.Roles;
+import com.library.backend.entities.Book;
+import com.library.backend.entities.BookRepository;
+import com.library.backend.entities.BranchRepository;
+import com.library.backend.entities.GenreRepository;
+import com.library.backend.service.UserService;
 import com.library.ui.components.BookForm;
 import com.library.ui.components.ViewToolbar;
 import com.vaadin.flow.component.button.Button;
@@ -15,7 +15,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.spring.security.AuthenticationContext;
 import jakarta.annotation.security.PermitAll;
 
 
@@ -23,9 +22,9 @@ import jakarta.annotation.security.PermitAll;
 @PermitAll
 public class BookDetails extends VerticalLayout implements HasUrlParameter<Long> {
     private final BookRepository bookRepo;
-    private final BranchRepository branchRepo;
     private final GenreRepository genreRepo;
-    private final AuthenticationContext authContext;
+    private final BranchRepository branchRepo;
+    private final UserService userService;
 
     private Book book;
     private final BookForm bookForm = new BookForm();
@@ -34,20 +33,20 @@ public class BookDetails extends VerticalLayout implements HasUrlParameter<Long>
 
     public BookDetails(
             BookRepository bookRepo,
-            BranchRepository branchRepo,
             GenreRepository genreRepo,
-            AuthenticationContext authContext
+            BranchRepository branchRepo,
+            UserService userService
     ) {
         this.bookRepo = bookRepo;
-        this.branchRepo = branchRepo;
         this.genreRepo = genreRepo;
-        this.authContext = authContext;
+        this.branchRepo = branchRepo;
+        this.userService = userService;
 
         bookForm.setEditable(false);
-        bookForm.setBranches(branchRepo.findAll());
-        bookForm.setGenres(genreRepo.findAll());
         bookForm.addSaveListener(this::saveBook);
         bookForm.addCancelListener(this::cancelEdit);
+        bookForm.setGenres(this.genreRepo.findAll());
+        bookForm.setBranches(this.branchRepo.findAll());
 
         configureLayout();
         configureButtons();
@@ -55,9 +54,7 @@ public class BookDetails extends VerticalLayout implements HasUrlParameter<Long>
 
     private void configureLayout() {
         Button backBtn = new Button("Back to All Books");
-        backBtn.addClickListener(click -> {
-            getUI().ifPresent(ui -> ui.navigate("books"));
-        });
+        backBtn.addClickListener(click -> getUI().ifPresent(ui -> ui.navigate("books")));
         ViewToolbar toolbar = new ViewToolbar("Book Details", backBtn);
         HorizontalLayout actions = new HorizontalLayout(editBtn, deleteBtn);
         add(toolbar, bookForm, actions);
@@ -65,7 +62,7 @@ public class BookDetails extends VerticalLayout implements HasUrlParameter<Long>
 
     private void configureButtons() {
         // hide and disable edit/delete buttons if not Admin
-        if(!authContext.hasRole(Roles.ADMIN)) {
+        if(!userService.isAdmin()) {
             editBtn.setVisible(false);
             editBtn.setEnabled(false);
             deleteBtn.setVisible(false);
@@ -78,9 +75,7 @@ public class BookDetails extends VerticalLayout implements HasUrlParameter<Long>
         deleteBtn.addThemeVariants(ButtonVariant.LUMO_ERROR);
 
         // logic
-        editBtn.addClickListener(click -> {
-            setEditable(true);
-        });
+        editBtn.addClickListener(click -> setEditable(true));
         deleteBtn.addClickListener(click -> {
             // open a dialogue box to ask the user to confirm the delete action
             ConfirmDialog confirmDialog = new ConfirmDialog();
@@ -89,7 +84,7 @@ public class BookDetails extends VerticalLayout implements HasUrlParameter<Long>
             confirmDialog.setCancelable(true);
             confirmDialog.setConfirmText("Delete");
             confirmDialog.setConfirmButtonTheme("error primary");
-            confirmDialog.addConfirmListener(event -> {this.deleteBook(book);});
+            confirmDialog.addConfirmListener(event -> this.deleteBook(book));
             confirmDialog.open();
         });
     }

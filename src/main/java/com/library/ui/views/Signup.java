@@ -1,7 +1,7 @@
 package com.library.ui.views;
 
-import com.library.security.Roles;
-import com.library.security.UserDTO;
+import com.library.backend.service.UserService;
+import com.library.backend.dto.UserDTO;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -14,18 +14,13 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.UserDetailsManager;
-
 
 @Route("signup")
 @PageTitle("Sign Up")
 @AnonymousAllowed
 public class Signup extends VerticalLayout {
-    private final UserDetailsManager userDetailsManager;
-    private final PasswordEncoder passwordEncoder;
+    private final UserService userService;
 
     private final BeanValidationBinder<UserDTO> binder = new BeanValidationBinder<>(UserDTO.class);
 
@@ -34,9 +29,8 @@ public class Signup extends VerticalLayout {
     private final PasswordField password = new PasswordField("Password");
     private final PasswordField confirmPassword = new PasswordField("Confirm Password");
 
-    public Signup(UserDetailsManager userDetailsManager, PasswordEncoder passwordEncoder) {
-        this.userDetailsManager = userDetailsManager;
-        this.passwordEncoder = passwordEncoder;
+    public Signup(UserService userService) {
+        this.userService = userService;
 
         FormLayout formLayout = new FormLayout();
 
@@ -49,22 +43,15 @@ public class Signup extends VerticalLayout {
 
         binder.bindInstanceFields(this);
         binder.forField(username)
-                .withValidator(name -> !userDetailsManager.userExists(name), "Username already exists");
+                .withValidator(name -> !this.userService.userExists(name), "Username already exists");
         binder.forField(confirmPassword)
                 .withValidator(confirmPass -> confirmPass.equals(password.getValue()), "Passwords do not match");
 
         submitBtn.addClickListener(e -> {
             UserDTO dto = new UserDTO();
             if(binder.writeBeanIfValid(dto)) {
-                String hashedPassword = passwordEncoder.encode(dto.getPassword());
-                UserDetails newUser = User.withUsername(dto.getUsername())
-                        .password(hashedPassword)
-                        .roles(Roles.USER)
-                        .build();
-                userDetailsManager.createUser(newUser);
-
+                this.userService.createUser(dto.getUsername(), dto.getPassword());
                 getUI().ifPresent(ui -> ui.navigate("login"));
-
             } else {
                 binder.validate();
             }

@@ -1,4 +1,4 @@
-package com.library.security;
+package com.library.backend.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
